@@ -99,11 +99,6 @@ def service():
 def test_client(client, input, service):
     import pytest_check
 
-    #astros = Client(
-    #    server=ASTROS_REST,
-    #    route=ROUTE,
-    #    data_service=ASTROS_DATA
-    #)
     result = client.exec(input)
     pytest_check.is_not_none(result)
     pytest_check.is_true(result.startswith("http"))
@@ -112,11 +107,6 @@ def test_client(client, input, service):
 def test_client_with_output_dir(client, input):
     import pytest_check
 
-    #astros = Client(
-    #    server=ASTROS_REST,
-    #    route=ROUTE,
-    #    data_service=ASTROS_DATA
-    #)
     output_dir = os.path.join(os.path.dirname(__file__), "output")
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
