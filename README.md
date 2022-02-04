@@ -59,7 +59,7 @@ pytest integration_tests/mstc-web-astros/
 
 ## What About The Rest of The Module?
 
-Aside `nslookup`, which is an exact copy of what is in `mstc-web-astros`, the
+Aside from `nslookup`, which is an exact copy of what is in `mstc-web-astros`, the
 rest of the module can be ignored for now as it is not quite ready yet.
 Although the code logic is mostly the same as what is in 
 `mstc-web-astros` at the time of this writing, there are some slight
@@ -70,7 +70,7 @@ modifications being experimented.
 The changes being experimented with have the goal of giving the **option**
 to create an app from the "exec command" logic as concisely as possible,
 while also allowing for creating the app from the ground up using the
-Provider as well.
+Provider if desired.
 
 #### ClientProxy & ServerProxy
 
@@ -90,4 +90,3 @@ The following flow chart illustrates the IPC flow:
 If we include the data service:
 
 ![Flowchart with DataService](/docs/assets/images/client_to_provider_ds_flow.png?raw=true)
-```
