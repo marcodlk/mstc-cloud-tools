@@ -31,6 +31,7 @@ class DataService:
         server_thread.name = "web server thread"
         server_thread.daemon = True
         server_thread.start()
+        # NOTE: (mdlk) the commented out code failed for me
         # host = socket.gethostbyname(socket.gethostname())
         host = socket.gethostname()
         self.url = "http://" + host + ":" + str(actual_port)
