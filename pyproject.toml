@@ -13,6 +13,7 @@ Flask-API = "^3.0.post1"
 [tool.poetry.dev-dependencies]
 pytest = ">=6.0.0"
 pytest_check = "^1.0.4"
+black = "^22.1.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

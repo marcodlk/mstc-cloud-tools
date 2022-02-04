@@ -13,6 +13,8 @@ class DataService:
             raise IOError(self.root_dir + " does not exist")
         self.port = port
         self.ip = ip
+        self.server = None
+        self.url = None
 
     def start(self):
         import socket
@@ -31,7 +33,8 @@ class DataService:
         server_thread.start()
         # host = socket.gethostbyname(socket.gethostname())
         host = socket.gethostname()
-        return self.server, "http://" + host + ":" + str(actual_port)
+        self.url = "http://" + host + ":" + str(actual_port)
+        return self.server, self.url
 
     def shutdown(self):
         self.server.shutdown()

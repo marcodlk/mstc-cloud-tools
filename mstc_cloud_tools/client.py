@@ -8,12 +8,64 @@ import requests
 from mstc_cloud_tools import data_service, nslookup
 
 
+class ClientProxy:
+    def __init__(self, data_service_url, endpoint, output_dir, data_url):
+        self.endpoint = endpoint
+        self.data_service_url = data_service_url
+        self.output_dir = output_dir
+        self.data_url = data_url
+
+    def submit_inputs(self, inputs):
+        request = self.inputs_to_request(inputs)
+        response = self.submit_request(request)
+        return self.response_to_outputs(response)
+
+    def submit_request(self, request):
+        headers = {"Content-type": "application/json"}
+        response = requests.post(
+            self.endpoint, data=json.dumps(request), headers=headers
+        )
+        if response.status_code == 200:
+            return response.json()
+        else:
+            print(str(response.status_code) + ": " + response.text)
+            return None
+
+    def inputs_to_request(self, inputs):
+        url_inputs = []
+        for input in inputs:
+            url_inputs.append(self.data_service_url + "/" + os.path.basename(input))
+        return url_inputs
+
+    def response_to_outputs(self, response):
+        data_url = self.data_url
+        output_url = response["outputs"]
+        if self.output_dir is not None:
+            from urllib.parse import urlparse
+
+            a = urlparse(output_url[0])
+            if data_url is None:
+                data_url = output_url[0]
+            else:
+                data_url = data_url[:-1] if data_url.endswith("/") else data_url
+                data_url = data_url + a.path
+
+            file_name = os.path.basename(a.path)
+            content = requests.get(data_url)
+            output_file = os.path.join(self.output_dir, file_name)
+            with open(output_file, "wb") as f:
+                f.write(content.content)
+            return os.path.abspath(output_file)
+        else:
+            return output_url[0]
+
+
 class Client:
     def __init__(self, server, route, data_service=None):
         self.server_url = normalize_partial_url(server)
         self.data_url = normalize_partial_url(data_service)
         self.route = route
-    
+
     def exec(self, inputs, **kwargs):
 
         client_addr = kwargs.get("client_addr")
@@ -30,6 +82,7 @@ class Client:
         if data_url is not None:
             data_url = "http://" + data_url
 
+        # TODO: currently assumes all inputs share same parent dir
         root_dir = ""
         for input in inputs:
             if os.path.exists(input):
@@ -40,41 +93,13 @@ class Client:
         ds = data_service.DataService(root_dir, 0, client_addr)
         ds_server, data_service_url = ds.start()
 
-        url_inputs = []
-        for input in inputs:
-            url_inputs.append(data_service_url + "/" + os.path.basename(input))
-
+        client_proxy = ClientProxy(data_service_url, endpoint, output_dir, data_url) 
         try:
-            headers = {"Content-type": "application/json"}
-            response = requests.post(endpoint, data=json.dumps(url_inputs), headers=headers)
-            if response.status_code == 200:
-                result = response.json()
-                output_url = result["outputs"]
-                if output_dir is not None:
-                    from urllib.parse import urlparse
-
-                    a = urlparse(output_url[0])
-                    if data_url is None:
-                        data_url = output_url[0]
-                    else:
-                        data_url = data_url[:-1] if data_url.endswith("/") else data_url
-                        data_url = data_url + a.path
-
-                    file_name = os.path.basename(a.path)
-                    content = requests.get(data_url)
-                    output_file = os.path.join(output_dir, file_name)
-                    with open(output_file, "wb") as f:
-                        f.write(content.content)
-                    return os.path.abspath(output_file)
-                else:
-                    return output_url[0]
-            else:
-                print(str(response.status_code) + ": " + response.text)
-
+            outputs = client_proxy.submit_inputs(inputs)
         finally:
             ds_server.shutdown()
 
-        return None
+        return outputs
 
 
 def inside_cluster():
