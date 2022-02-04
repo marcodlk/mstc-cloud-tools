@@ -93,7 +93,7 @@ class Client:
         ds = data_service.DataService(root_dir, 0, client_addr)
         ds_server, data_service_url = ds.start()
 
-        client_proxy = ClientProxy(data_service_url, endpoint, output_dir, data_url) 
+        client_proxy = ClientProxy(data_service_url, endpoint, output_dir, data_url)
         try:
             outputs = client_proxy.submit_inputs(inputs)
         finally:

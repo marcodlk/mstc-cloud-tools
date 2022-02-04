@@ -13,7 +13,6 @@ from mstc_cloud_tools import nslookup
 
 
 class InputValidator:
-
     def __init__(self, logger):
         self.logger = logger
 
@@ -24,7 +23,6 @@ class InputValidator:
 
 
 class ServerProxy:
-
     def __init__(self, data_service_url: str, scratch_dir: str, logger: logging.Logger):
         self.data_service_url = data_service_url
         self.scratch_dir = scratch_dir
@@ -55,11 +53,16 @@ class ServerProxy:
                     input_file.close()
                     self.logger.info("Wrote to file " + file_name)
                 except urllib.error.HTTPError as e:
-                    self.logger.info("The server could not fulfill the request. Error code: " + e.code)
+                    self.logger.info(
+                        "The server could not fulfill the request. Error code: "
+                        + e.code
+                    )
                     self._clean(file_name)
                     raise urllib.error.HTTPError("failed accessing: " + input) from e
                 except urllib.error.URLError as e:
-                    self.logger.info("We failed to reach a server. Reason: " + str(e.reason))
+                    self.logger.info(
+                        "We failed to reach a server. Reason: " + str(e.reason)
+                    )
                     self._clean(file_name)
                     raise urllib.error.URLError("failed accessing: " + input) from e
 
@@ -81,7 +84,7 @@ class ServerProxy:
         for output_file in output_file_names:
             for filename in os.listdir(exec_dir):
                 if filename == output_file:
-                    relative_path = exec_dir[len(self.scratch_dir):]
+                    relative_path = exec_dir[len(self.scratch_dir) :]
                     request_path = self.data_service_url + relative_path
                     output_file_urls.append(request_path + "/" + filename)
 
@@ -116,7 +119,7 @@ class BaseProvider(ABC):
 
     @classmethod
     def init_app(cls, app, scratch_dir=None, native_dir=None, data_service_port=8081):
-        
+
         native_dir = native_dir or "/app/native"
         scratch_dir = scratch_dir or os.path.join(os.getcwd(), "scratch")
 
@@ -131,13 +134,12 @@ class BaseProvider(ABC):
         app.config["SCRATCH_DIR"] = scratch_dir
         app.config["STATS"] = dict()
         app.config["START_TIME"] = datetime.utcnow()
-        
+
         cls.init_endpoints(app)
         cls.init_path_stats(app)
 
     @classmethod
     def init_endpoints(cls, app):
-
         @app.route("/", methods=["GET"])
         def index():
             return cls().index()
@@ -167,7 +169,11 @@ class BaseProvider(ABC):
                 return response
             duration = round(time.time() - g.start, 3)
             host = request.host.split(":", 1)[0]
-            log_params = [("duration", str(duration) + " ms,"), ("from", host + ","), ("status", response.status_code)]
+            log_params = [
+                ("duration", str(duration) + " ms,"),
+                ("from", host + ","),
+                ("status", response.status_code),
+            ]
             parts = []
             for name, value in log_params:
                 part = "{}: {}".format(name, value)
@@ -175,7 +181,9 @@ class BaseProvider(ABC):
             stats = " ".join(parts)
             current_app.logger.info(request.method + " " + request.path + ", " + stats)
 
-            current_app.config["STATS"][request.path].add_values(duration, response.status_code)
+            current_app.config["STATS"][request.path].add_values(
+                duration, response.status_code
+            )
 
             return response
 
@@ -222,7 +230,9 @@ class BaseProvider(ABC):
                 self.logger.warning(message)
                 return message, status.HTTP_400_BAD_REQUEST
 
-            script_command, output_file_names = self._copy_script_and_get_command(exec_dir, self.native_dir, inputs)
+            script_command, output_file_names = self._copy_script_and_get_command(
+                exec_dir, self.native_dir, inputs
+            )
 
             completed = self._exec_native_app(exec_dir, script_command, env={})
             self.logger.debug("return_code: " + str(completed.returncode))
@@ -261,7 +271,9 @@ class BaseProvider(ABC):
     def _create_exec_dir(self):
 
         when = datetime.utcnow().strftime("%Y-%m-%d,%H:%M:%S.%f")
-        exec_dir = os.path.join(self.scratch_dir, "exec-" + str(self.counter) + "-" + when)
+        exec_dir = os.path.join(
+            self.scratch_dir, "exec-" + str(self.counter) + "-" + when
+        )
         self.__class__.counter += 1
         if not os.path.exists(exec_dir):
             os.makedirs(exec_dir)
@@ -278,6 +290,7 @@ class BaseProvider(ABC):
     def _copy_script_and_get_command(self, exec_dir, native_dir, inputs):
         import shutil
         import stat
+
         # from pathlib import Path
 
         # path = Path(os.path.dirname(__file__))
@@ -290,7 +303,7 @@ class BaseProvider(ABC):
         os.chmod(dst, st.st_mode | stat.S_IEXEC)
 
         return self.get_exec_command(dst, native_dir, inputs)
-    
+
     def get_native_app_runner_path(self):
         from pathlib import Path
 
