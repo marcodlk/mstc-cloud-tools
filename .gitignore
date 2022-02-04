@@ -1,6 +1,7 @@
 scratch/
 .vscode/
-**/tests/data/AstrosModalAGARD445.*
+**/data/AstrosModalAGARD445.*
+**/mstc-web-astros/output
 **/tests/output
 native/
 # Byte-compiled / optimized / DLL files
