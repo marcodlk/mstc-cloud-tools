@@ -5,12 +5,14 @@ from datetime import datetime
 import traceback
 import urllib.error
 from abc import ABC, abstractmethod
+import pathlib
 
 from flask import Flask, g, render_template, request, current_app
 from flask_api import status
 
 from mstc_cloud_tools import nslookup
 
+TEMPLATES_DIR = os.path.join(pathlib.Path(os.path.dirname(__file__)), "templates")
 
 class InputValidator:
     def __init__(self, logger):
@@ -127,7 +129,7 @@ class BaseProvider(ABC):
         if not os.path.exists(scratch_dir):
             os.makedirs(scratch_dir)
             app.logger.info("Created dir: " + scratch_dir)
-        _, data_service_url = _create_data_service(scratch_dir, data_service_port)
+        data_service, data_service_url = _create_data_service(scratch_dir, data_service_port)
         app.logger.info("Data service serving on: " + data_service_url)
         cls.setUp(scratch_dir, native_dir, data_service_url)
 
@@ -194,11 +196,6 @@ class BaseProvider(ABC):
             app.config["STATS"][str(r)] = path_stats
 
     def index(self):
-        values = self.info()
-        stats = self.stats
-        return render_template("index.html", values=values, stats=stats)
-
-    def info(self):
         import socket
 
         start_time = self.start_time
@@ -208,12 +205,13 @@ class BaseProvider(ABC):
         uptime = when - start_time
         self.logger.info("hello from " + str(request.remote_addr))
         values = {
+            "name": self.__class__.__name__,
             "addr": addr,
             "hostname": hostname,
             "remote_addr": request.remote_addr,
             "when": when.strftime("%Y-%m-%d %H:%M:%S"),
             "started": start_time.strftime("%Y-%m-%d %H:%M:%S"),
-            "uptime": uptime,
+            "uptime": str(uptime),
         }
         return values
 
@@ -291,10 +289,6 @@ class BaseProvider(ABC):
         import shutil
         import stat
 
-        # from pathlib import Path
-
-        # path = Path(os.path.dirname(__file__))
-        # src = os.path.join(path.parent.absolute(), "bin/native-app-runner.sh")
         src = self.get_native_app_runner_path()
         dst = os.path.join(exec_dir, os.path.basename(src))
         self.logger.info("Copy " + src + " -> " + dst)
@@ -311,7 +305,7 @@ class BaseProvider(ABC):
         return os.path.join(path.parent.absolute(), "bin/native-app-runner.sh")
 
     @abstractmethod
-    def get_exec_command(script_to_exec, native_dir, inputs):
+    def get_exec_command(self, script_to_exec, native_dir, inputs):
         pass
 
     @property
@@ -364,6 +358,13 @@ class PathStats:
 
     def errors(self):
         return self._errors
+
+    def todict(self):
+        statnames = ("longest", "shortest", "last", "count", "errors")
+        return {
+            statname: getattr(self, statname)()
+            for statname in statnames
+        }
 
 
 def _create_data_service(scratch_dir, port_arg, ip="0.0.0.0"):
