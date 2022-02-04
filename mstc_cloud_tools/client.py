@@ -39,25 +39,27 @@ class ClientProxy:
 
     def response_to_outputs(self, response):
         data_url = self.data_url
-        output_url = response["outputs"]
+        output_urls = response["outputs"]
         if self.output_dir is not None:
             from urllib.parse import urlparse
-
-            a = urlparse(output_url[0])
-            if data_url is None:
-                data_url = output_url[0]
-            else:
-                data_url = data_url[:-1] if data_url.endswith("/") else data_url
-                data_url = data_url + a.path
-
-            file_name = os.path.basename(a.path)
-            content = requests.get(data_url)
-            output_file = os.path.join(self.output_dir, file_name)
-            with open(output_file, "wb") as f:
-                f.write(content.content)
-            return os.path.abspath(output_file)
+            files = []
+            for output_url in output_urls:
+                a = urlparse(output_url)
+                if data_url is None:
+                    data_url = output_url
+                else:
+                    data_url = data_url[:-1] if data_url.endswith("/") else data_url
+                    data_url = data_url + a.path
+                       
+                file_name = os.path.basename(a.path)
+                content = requests.get(data_url)
+                output_file = os.path.join(self.output_dir, file_name)
+                with open(output_file, "wb") as f:
+                    f.write(content.content)
+                files.append(os.path.abspath(output_file))
+            return files
         else:
-            return output_url[0]
+            return output_urls
 
 
 class Client:
@@ -108,6 +110,8 @@ def inside_cluster():
 
 
 def normalize_partial_url(url):
+    if  url is None:
+        return url
     if not url[-1] == "/":
         return url + "/"
     else:
