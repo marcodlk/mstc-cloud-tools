@@ -6,9 +6,7 @@ authors = ["DELANNOYKOBAYASHI.MARCO.T.1568283135.E <marco.de_lannoy_kobayashi.ct
 
 [tool.poetry.dependencies]
 python = "^3.9"
-click = "^8.0.3"
 requests = "^2.27.1"
-Flask-API = "^3.0.post1"
 
 [tool.poetry.dev-dependencies]
 pytest = ">=6.0.0"
