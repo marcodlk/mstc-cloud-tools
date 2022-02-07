@@ -101,7 +101,9 @@ def test_client(client, input, service):
 
     result = client.exec(input)
     pytest_check.is_not_none(result)
-    pytest_check.is_true(result.startswith("http"))
+    assert type(result) is list, "Expected an list got " + str(type(result))
+    assert len(result) == 1, "Expected an list with 1 element, got " + len(result)
+    pytest_check.is_true(result[0].startswith("http"))
 
 
 def test_client_with_output_dir(client, input):
@@ -112,4 +114,6 @@ def test_client_with_output_dir(client, input):
         os.mkdir(output_dir)
     result = client.exec(input, output_dir=output_dir)
     pytest_check.is_not_none(result)
-    pytest_check.is_true(os.path.exists(result))
+    assert type(result) is list, "Expected an list got " + str(type(result))
+    assert len(result) == 1, "Expected an list with 1 element, got " + len(result)
+    print("result: " + str(result[0]))
