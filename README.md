@@ -56,37 +56,3 @@ the integration tests, assumming that `mstc-web-astros` is deployed.
 ```bash
 pytest integration_tests/mstc-web-astros/
 ```
-
-## What About The Rest of The Module?
-
-Aside from `nslookup`, which is an exact copy of what is in `mstc-web-astros`, the
-rest of the module can be ignored for now as it is not quite ready yet.
-Although the code logic is mostly the same as what is in 
-`mstc-web-astros` at the time of this writing, there are some slight
-modifications being experimented.
-
-### What is different
-
-The changes being experimented with have the goal of giving the **option**
-to create an app from the "exec command" logic as concisely as possible,
-while also allowing for creating the app from the ground up using the
-Provider if desired.
-
-#### ClientProxy & ServerProxy
-
-The `ClientProxy` is responsible for converting the client inputs into
-requests and server responses to outputs. Conversely, the `ServerProxy`
-is responsible for converting the client requests into provider inputs
-and provider outputs to server responses. The goal is to abstract the
-transport layer such that the client and provider may be implemented
-assuming that the provider sees essentially the same inputs that the
-client sends and the client sees the same outputs the provider returns
--- agnostic to the details of how the data is transmitted between them.
-
-The following flow chart illustrates the IPC flow:
-
-![Flowchart](/docs/assets/images/client_to_provider_flow.png?raw=true)
-
-If we include the data service:
-
-![Flowchart with DataService](/docs/assets/images/client_to_provider_ds_flow.png?raw=true)
